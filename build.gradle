@@ -1,0 +1,76 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // junit
+
+    // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.3'
+    // https://mvnrepository.com/artifact/org.junit.vintage/junit-vintage-engine
+    testImplementation 'org.junit.vintage:junit-vintage-engine:5.11.3'
+    // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.11.3'
+
+
+    // rest-assured
+    // https://mvnrepository.com/artifact/io.rest-assured/rest-assured
+    implementation 'io.rest-assured:rest-assured:5.5.0'
+    // https://mvnrepository.com/artifact/io.rest-assured/json-schema-validator
+    implementation 'io.rest-assured:json-schema-validator:5.5.0'
+
+
+    // cucumber
+    // https://mvnrepository.com/artifact/io.cucumber/cucumber-java
+    implementation group: 'io.cucumber', name: 'cucumber-java', version: '7.20.1'
+    // https://mvnrepository.com/artifact/io.cucumber/cucumber-junit
+    testImplementation group: 'io.cucumber', name: 'cucumber-junit', version: '7.20.1'
+
+    //JSON
+    // https://mvnrepository.com/artifact/org.json/json
+    implementation 'org.json:json:20240303'
+
+    //AssertJ
+    // https://mvnrepository.com/artifact/org.assertj/assertj-core
+    implementation 'org.assertj:assertj-core:3.26.3'
+
+    // javafaker
+    // https://mvnrepository.com/artifact/com.github.javafaker/javafaker
+    implementation 'com.github.javafaker:javafaker:1.0.2'
+
+
+}
+test {
+    useJUnitPlatform()
+}
+
+
+configurations {
+    cucumberRuntime {
+        extendsFrom testImplementation
+    }
+}
+
+def tags = (findProperty('tags') == null) ? 'not @exclude' : findProperty('tags') + ' and not @exclude'
+
+tasks.register('SauceDemo', JavaExec) {
+    description = "Running Sauce Demo Cucumber"
+    dependsOn assemble, compileTestJava
+    mainClass = "io.cucumber.core.cli.Main"
+    classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+    args = [
+            '--plugin', 'pretty',
+            '--plugin', 'html:reports/Go-Rest-report.html',
+            '--plugin', 'json:reports/Go-Rest-report.json',
+            '--glue', 'stepdef',
+            '--tags', "${tags}",
+            'src/test/resources/features' // Ensure this path matches your feature file location
+    ]
+}
